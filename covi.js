@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer'),
     cheerio = require('cheerio'),
     fs = require('fs'),
     log = console.log,
-    dataFolder = 'data',
+    dataPath = 'data',
     isSaveToFile = true
 
 async function readFile(path) {
@@ -10,6 +10,16 @@ async function readFile(path) {
         fs.readFile(path, 'utf8', function (err, data) {
             if (err) reject(err)
             resolve(data)
+        })
+    })
+}
+async function writeFile(fileName, content) {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(fileName, content, function (err) {
+            if (err) reject(err)
+            var statusText = 'write file > ' + fileName + ' success'
+            log(statusText)
+            resolve(true)
         })
     })
 }
@@ -21,44 +31,17 @@ async function fetchHtmlTableNow() {
     await page.goto(url, { waitUntil: 'networkidle2' });
     let bodyHtml = await page.evaluate(() => document.body.innerHTML);
     //log(bodyHtml)
-    if (isSaveToFile) writeFile(genFileName(dataFolder, { prefixName: 'body', extentionName: '.html' }), bodyHtml)
+    if (isSaveToFile) writeFile(genFileName(dataPath, 'body', '.html'), bodyHtml)
     await browser.close();
     return bodyHtml
 }
-var json = {
-    "20200403": {
-        usa: {
-            totalCases: 1234,
-            newCases: 123,
-            totalDeaths: 112,
-            newDeaths: 1,
-            totalRecovered: '',
-            activeCases: 123,
-            seriousCritical: 12,
-            totalCasesPer1MPop: 12,
-            deathsPer1MPop: 123,
-        },
-        spain: {
 
-        }
-    }
-}
-function writeFile(fileName, content) {
-    return new Promise((resolve, reject) => {
-        fs.writeFile(fileName, content, function (err) {
-            if (err) reject(err)
-            var statusText = 'write file > ' + fileName + ' success'
-            log(statusText)
-            resolve(statusText)
-        })
-    })
-}
-function genFileName(path, file) {
+function genFileName(path, prefixName, extentionName) {
     let d = new Date(),
         y = d.getFullYear(),
         m = (d.getMonth() + 1),
         day = d.getDay()
-    return `${path}/${file.prefixName}_${y}_${m >= 10 ? m : '0' + m}_${day >= 10 ? day : '0' + day}${file.extentionName}`
+    return `${path}/${prefixName}_${y}_${m >= 10 ? m : '0' + m}_${day >= 10 ? day : '0' + day}${extentionName}`
 }
 function genHtmlTableNowToJson(htmlPage) {
     let jsonWorld = {}
@@ -73,33 +56,32 @@ function genHtmlTableNowToJson(htmlPage) {
         jsonWorld = Object.assign(jsonWorld, jsonCountry)
     }
     log(jsonWorld)
-    writeFile(genFileName(dataFolder, { prefixName: 'data', extentionName: '.json' }), JSON.stringify(jsonWorld))
+    writeFile(genFileName(dataPath, 'data', '.json'), JSON.stringify(jsonWorld))
 }
-const removeComma = (obj) => obj.text().trim().replace(',', '')
+const delComma = (obj) => obj.text().trim().replace(',', '')
 function genHtmlRowTableNowToJson(strHtmlRow) {
     let $ = cheerio.load(strHtmlRow, { xmlMode: true })
     //log($('td').length)
     //log($('td').eq(0).html())
     let jsonRow = {},
         // name country
-        rowKeyName = $('td').eq(0).text().trim().replace(/\s+|\n|-|\./g, '_').toLowerCase().replace('__', '_'),
+        rowKeyName = $('td').eq(0).text().trim().replace(/\s+|\n|-|\./g, '_').replace('__', '_').toLowerCase(),
         jsonKeyValue = {
-            totalCases: +removeComma($('td').eq(1)),
-            newCases: +removeComma($('td').eq(2)),
-            totalDeaths: +removeComma($('td').eq(3)),
-            newDeaths: +removeComma($('td').eq(4)),
-            totalRecovered: +removeComma($('td').eq(5)),
-            activeCases: +removeComma($('td').eq(6)),
-            seriousCritical: +removeComma($('td').eq(7)),
-            totalCasesPer1MPop: +removeComma($('td').eq(8)),
-            deathsPer1MPop: +removeComma($('td').eq(9)),
-            totalTests: +removeComma($('td').eq(10)),
-            testsPer1MPop: +removeComma($('td').eq(11)),
+            totalCases: +delComma($('td').eq(1)),
+            newCases: +delComma($('td').eq(2)),
+            totalDeaths: +delComma($('td').eq(3)),
+            newDeaths: +delComma($('td').eq(4)),
+            totalRecovered: +delComma($('td').eq(5)),
+            activeCases: +delComma($('td').eq(6)),
+            seriousCritical: +delComma($('td').eq(7)),
+            totalCasesPer1MPop: +delComma($('td').eq(8)),
+            deathsPer1MPop: +delComma($('td').eq(9)),
+            totalTests: +delComma($('td').eq(10)),
+            testsPer1MPop: +delComma($('td').eq(11)),
         }
     jsonRow[rowKeyName] = jsonKeyValue
     //log(jsonRow)
     return jsonRow
-
 }
 (async function () {
     let html = await fetchHtmlTableNow()
