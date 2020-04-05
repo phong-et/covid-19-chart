@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer'),
     cheerio = require('cheerio'),
     fs = require('fs'),
     log = console.log,
-    dataPath = 'data/',
+    dataPath = 'public/data/',
     isSaveToHtmlFile = false
 
 async function readFile(path) {
