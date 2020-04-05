@@ -55,14 +55,14 @@ function genHtmlTableNowToJson(htmlPage) {
     let rows = $('#main_table_countries_today tr[role=row]')
     for (let i = 1; i < rows.length; i++) {
         let row = cheerio.load(rows.eq(i).html().trim(), { xmlMode: true })
-        jsonCountry = genHtmlRowTableNowToJson(row.html().trim())
+        jsonCountry = genHtmlRowTableNowToArray(row.html().trim())
         jsonWorld = Object.assign(jsonWorld, jsonCountry)
     }
     log(jsonWorld)
-    writeFile(genFileName(dataPath, '', '.json'), JSON.stringify(jsonWorld))
+    writeFile(genFileName(dataPath, 'a', '.json'), JSON.stringify(jsonWorld))
 }
 
-const delComma = (obj) => obj.text().trim().replace(',', '')
+const delComma = (obj) => obj.text().trim().replace(/,+/g, '')
 function genHtmlRowTableNowToJson(strHtmlRow) {
     let $ = cheerio.load(strHtmlRow, { xmlMode: true })
     //log($('td').length)
