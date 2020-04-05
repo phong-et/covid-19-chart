@@ -25,11 +25,12 @@
     <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet" />
     <style>
         fieldset {
-            border: 0.5px groove #ddd !important;
+            border: 0.5px groove rgb(184, 181, 181) !important;
             padding: 0.5em !important;
             margin: 0 0.5em 0 0.5em !important;
-            -webkit-box-shadow: 0px 0px 0px 0px #000;
-            box-shadow: 0px 0px 0px 0px #000;
+            -webkit-box-shadow: 0px 0px 0px 0px rgb(184, 181, 181);
+            box-shadow: 0px 0px 0px 0px rgb(184, 181, 181);;
+            background-color: #f7f7eb;
         }
 
         fieldset .form-control {
@@ -64,7 +65,7 @@
             opacity: 0.95;
             z-index: 999999;
         }
-        body,html{height: 100%; width: 100%;}
+        /* body,html{height: 100%; width: 100%;} */
     </style>
 </head>
 
@@ -77,6 +78,9 @@
             <legend>
                 <h6>Cấu hình</h6>
             </legend>
+            <i class="far fa-calendar-alt fa-2x" style="margin-top: 2px;color: #000;"></i>
+            <input id="datepickerReview" style="width:110px; margin-top: -13px;" type="text" class="form-control">
+            <br/><br/>
             <!-- <label id="lbAge">Chọn loại đồ thị: </label> -->
             <select class="form-control" id="ddlCaseType" style="margin-top:-13px; margin-bottom: 5px; width:180px;">
                 <option value="totalCases">Tổng ca nhiễm</option>
@@ -96,9 +100,7 @@
                 <option value="40">Top 40 Nước</option>
                 <option value="50">Top 50 Nước</option>
             </select><br/>
-            <i class="far fa-calendar-alt fa-2x" style="margin-top: 2px;color: #000;"></i>
-            <input id="datepickerReview" style="width:110px; margin-top: -13px;" type="text" class="form-control">
-            <br/>
+            
             <input type="checkbox" id="cbIsIncludedTheWorld">
             <label>Hiện thị dữ liệu thế giới</label><br/>
             <button id="btnViewChart" type="button" style="margin-top:-13px; display: none;" class="btn btn-primary btn-small"><i
