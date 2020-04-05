@@ -1,5 +1,9 @@
 let log = console.log
 $().ready(function () {
+    // load chart as default conditions
+    loadData(genFileName(new Date()), data => {
+        drawChart(mutateDataByCondition(data, 'newCases', { limitedNumber: 20, isIncludedTheWorld: false }))
+    })
     let options = {
         format: 'dd/mm/yyyy',
         setDate: new Date(),
@@ -14,23 +18,27 @@ $().ready(function () {
         $('#container').width(width ? width : '100%')
         Chart.reflow();
     });
-
-    $('#btnViewChart').click(function () {
+    let btnViewChart = $('#btnViewChart')
+    btnViewChart.click(function () {
         let caseType = $('#ddlCaseType option:selected'),
             condition = caseType.val(),
-            fileName = genFileName($('#datepickerReview').datepicker('getDate'))
+            fileName = genFileName($('#datepickerReview').datepicker('getDate')),
+            limitedNumber = $('#ddlLimitedCountry option:selected').val(),
+            isIncludedTheWorld = $('#cbIsIncludedTheWorld').is(':checked')
 
         chartTitle = caseType.text()
         loadData(fileName, data => {
-            drawChart(mutateDataByCondition(data, condition))
+            if (limitedNumber === 'all')
+                data = mutateDataByCondition(data, condition, { isIncludedTheWorld: isIncludedTheWorld })
+            else data = mutateDataByCondition(data, condition, { limitedNumber: +limitedNumber, isIncludedTheWorld: isIncludedTheWorld })
+            drawChart(data)
         })
         Chart.reflow();
     });
 
-    // load chart as default conditions
-    loadData(genFileName(new Date()), data => {
-        drawChart(mutateDataByCondition(data, 'newCases'))
-    })
+    $('#cbIsIncludedTheWorld').change(() => btnViewChart.trigger('click'))
+    $('#ddlLimitedCountry').change(() => btnViewChart.trigger('click'))
+    $('#ddlCaseType').change(() => btnViewChart.trigger('click'))
 })
 //date is a Date() object
 function genFileName(date) {
@@ -63,7 +71,7 @@ function loadData(fileName, callback) {
     //totalTests: 
     //testsPer1MPop: 
  */
-function mutateDataByCondition(data, condition) {
+function mutateDataByCondition(data, condition, chartConfig) {
     let mutatedData = [],
         indexCondition = 0
     switch (condition) {
@@ -86,8 +94,13 @@ function mutateDataByCondition(data, condition) {
                 percent: countryName === 'world' ? 100 : (number / sum) * 100
             })
     }
+    if (chartConfig && !chartConfig.isIncludedTheWorld)
+        mutatedData.splice(0, 1)
+    mutatedData = sort(mutatedData).reverse()
     log(mutatedData)
-    return sort(mutatedData).reverse()
+    if (chartConfig && chartConfig.limitedNumber) mutatedData.splice(chartConfig.limitedNumber)
+    log(mutatedData)
+    return mutatedData
 }
 function sort(array, order) {
     return _u.orderBy(array, ['y'], [order ? 'asc' : order])
