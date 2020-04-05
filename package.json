@@ -1,15 +1,21 @@
 {
-  "name": "covid-19-chart",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "server",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
+    "constantinople": "^3.1.1",
+    "cookie-parser": "~1.4.4",
+    "core-js": "^3.6.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "jstransformer": "^1.0.0",
+    "morgan": "~1.9.1",
+    "pug": "^2.0.4",
     "puppeteer": "^2.1.1"
   }
 }
