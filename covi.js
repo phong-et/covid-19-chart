@@ -40,7 +40,7 @@ function genFileName(path, prefixName, extentionName) {
     let d = new Date(),
         y = d.getFullYear(),
         m = (d.getMonth() + 1),
-        day = d.getDay()
+        day = d.getDate()
     return `${path}/${prefixName}_${y}_${m >= 10 ? m : '0' + m}_${day >= 10 ? day : '0' + day}${extentionName}`
 }
 function genHtmlTableNowToJson(htmlPage) {
