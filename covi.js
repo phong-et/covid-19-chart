@@ -2,8 +2,8 @@ const puppeteer = require('puppeteer'),
     cheerio = require('cheerio'),
     fs = require('fs'),
     log = console.log,
-    dataPath = 'data',
-    isSaveToFile = true
+    dataPath = 'data/',
+    isSaveToHtmlFile = false
 
 async function readFile(path) {
     return new Promise((resolve, reject) => {
@@ -25,14 +25,13 @@ async function writeFile(fileName, content) {
     })
 }
 
-function genFileName(path, prefixName, extentionName) {
+function genFileName(extentionName, hasHourSuffix) {
     let d = new Date(),
         y = d.getFullYear(),
         m = (d.getMonth() + 1),
         day = d.getDate()
-    return `${path}/${prefixName}${y}${m >= 10 ? m : '0' + m}${day >= 10 ? day : '0' + day}${extentionName}`
+    return `${y}${m >= 10 ? m : '0' + m}${day >= 10 ? day : '0' + day}${hasHourSuffix ? '_' + d.getHours() + 'h' : ''}${extentionName}`
 }
-
 
 async function fetchHtmlTableNow() {
     const url = 'https://www.worldometers.info/coronavirus/'
@@ -41,7 +40,10 @@ async function fetchHtmlTableNow() {
     await page.goto(url, { waitUntil: 'networkidle2' });
     let bodyHtml = await page.evaluate(() => document.body.innerHTML);
     //log(bodyHtml)
-    if (isSaveToFile) writeFile(genFileName(dataPath, '', '.html'), bodyHtml)
+    if (isSaveToHtmlFile) {
+        writeFile(dataPath + genFileName('.html'), bodyHtml)
+        writeFile(dataPath + genFileName('.html', true), bodyHtml)
+    }
     await browser.close();
     return bodyHtml
 }
@@ -58,8 +60,10 @@ function genHtmlTableNowToJson(htmlPage) {
         jsonCountry = genHtmlRowTableNowToArray(row.html().trim())
         jsonWorld = Object.assign(jsonWorld, jsonCountry)
     }
-    log(jsonWorld)
-    writeFile(genFileName(dataPath, 'a', '.json'), JSON.stringify(jsonWorld))
+    let content = JSON.stringify(jsonWorld)
+    log(content)
+    writeFile(dataPath + genFileName('.json'), content)
+    writeFile(dataPath + genFileName('.json', true), content)
 }
 
 const delComma = (obj) => obj.text().trim().replace(/,+/g, '')
@@ -119,6 +123,8 @@ function genHtmlRowTableNowToArray(strHtmlRow) {
     jsonRow[rowKeyName] = jsonKeyValue
     return jsonRow
 }
+
+
 
 //////////////////////////////////////////////// Main Function ////////////////////////////////////////////////
 (async function () {
