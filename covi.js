@@ -34,17 +34,27 @@ function genFileName(extentionName, hasHourSuffix) {
 }
 
 async function fetchHtmlTable(url) {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2' });
-    let bodyHtml = await page.evaluate(() => document.body.innerHTML);
-    //log(bodyHtml)
-    if (isSaveToHtmlFile) {
-        writeFile(dataPath + genFileName('.html'), bodyHtml)
-        writeFile(dataPath + genFileName('.html', true), bodyHtml)
+    try {
+        let s = new Date()
+        log('%s: fetching data...', s.toLocaleString())
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.goto(url, { waitUntil: 'networkidle2' });
+        let bodyHtml = await page.evaluate(() => document.body.innerHTML);
+        //log(bodyHtml)
+        if (isSaveToHtmlFile) {
+            writeFile(dataPath + genFileName('.html'), bodyHtml)
+            writeFile(dataPath + genFileName('.html', true), bodyHtml)
+        }
+        await browser.close();
+        let e = new Date()
+        log('%s: fetched data', e.toLocaleString())
+        log('Total seconds: %ss', Math.floor((e.getTime()-s.getTime())/1000))
+        return bodyHtml
+    } catch (error) {
+        log('Error at -> fetchHtmlTable:')
+        log(error)
     }
-    await browser.close();
-    return bodyHtml
 }
 
 async function genHtmlTableToJson(htmlPage) {
@@ -64,7 +74,6 @@ async function genHtmlTableToJson(htmlPage) {
     await writeFile(dataPath + genFileName('.json'), content)
     await writeFile(dataPath + genFileName('.json', true), content)
 }
-
 
 // function genHtmlRowTableNowToJson(strHtmlRow) {
 //     let $ = cheerio.load(strHtmlRow, { xmlMode: true })
@@ -123,12 +132,18 @@ function genHtmlRowTableToArray(strHtmlRow) {
     jsonRow[rowKeyName] = rowKeyValue
     return jsonRow
 }
-const WAIT_NEXT_FETCHING = 60000 // 60s
+const WAIT_NEXT_FETCHING = 900 // 15 minutes
 async function run() {
-    let html = await fetchHtmlTable('https://www.worldometers.info/coronavirus/')
-    await genHtmlTableToJson(html)
-    log('%s: waiting after %ss', new Date().toLocaleString(), WAIT_NEXT_FETCHING / 1000)
-    setTimeout(async () => await run(), WAIT_NEXT_FETCHING)
+    try {
+        let html = await fetchHtmlTable('https://www.worldometers.info/coronavirus/')
+        await genHtmlTableToJson(html)
+        log('%s: waiting after %ss', new Date().toLocaleString(), WAIT_NEXT_FETCHING)
+        setTimeout(async () => await run(), WAIT_NEXT_FETCHING * 1000)
+    } catch (error) {
+        log(error)
+        log('%s:Has error, waiting after %ss', new Date().toLocaleString(), WAIT_NEXT_FETCHING)
+        setTimeout(async () => await run(), WAIT_NEXT_FETCHING * 1000)
+    }
 }
 /////// Main ////////
 (async () => await run())()
