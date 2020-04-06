@@ -39,7 +39,10 @@ async function fetchHtmlTable(url) {
         log('%s: fetching data...', s.toLocaleString())
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
-        await page.goto(url, { waitUntil: 'networkidle2' });
+        await page.goto(url, {
+            //waitUntil: 'networkidle2',
+            waitUntil: 'load'
+        });
         let bodyHtml = await page.evaluate(() => document.body.innerHTML);
         //log(bodyHtml)
         if (isSaveToHtmlFile) {
@@ -49,7 +52,7 @@ async function fetchHtmlTable(url) {
         await browser.close();
         let e = new Date()
         log('%s: fetched data', e.toLocaleString())
-        log('Total seconds: %ss', Math.floor((e.getTime()-s.getTime())/1000))
+        log('Total seconds: %ss', Math.floor((e.getTime() - s.getTime()) / 1000))
         return bodyHtml
     } catch (error) {
         log('Error at -> fetchHtmlTable:')
@@ -73,6 +76,7 @@ async function genHtmlTableToJson(htmlPage) {
     //log(content)
     await writeFile(dataPath + genFileName('.json'), content)
     await writeFile(dataPath + genFileName('.json', true), content)
+    return content
 }
 
 // function genHtmlRowTableNowToJson(strHtmlRow) {
@@ -134,16 +138,22 @@ function genHtmlRowTableToArray(strHtmlRow) {
 }
 const WAIT_NEXT_FETCHING = 900 // 15 minutes
 async function run() {
+    let currentData = []
     try {
         let html = await fetchHtmlTable('https://www.worldometers.info/coronavirus/')
-        await genHtmlTableToJson(html)
+        currentData = await genHtmlTableToJson(html)
         log('%s: waiting after %ss', new Date().toLocaleString(), WAIT_NEXT_FETCHING)
         setTimeout(async () => await run(), WAIT_NEXT_FETCHING * 1000)
+        return currentData
     } catch (error) {
         log(error)
-        log('%s:Has error, waiting after %ss', new Date().toLocaleString(), WAIT_NEXT_FETCHING)
-        setTimeout(async () => await run(), WAIT_NEXT_FETCHING * 1000)
+        log('%s:Has error, waiting after %ss', new Date().toLocaleString())
+        await run()
     }
 }
+
+module.exports = {
+    run: run
+}
 /////// Main ////////
-(async () => await run())()
+//(async () => await run())()
