@@ -110,7 +110,13 @@ let Chart,
     chartTitle,
     chartSubTitle
 log(chartTitle)
+const format = (number) => new Intl.NumberFormat(['ban', 'id']).format(number)
 function drawChart(data) {
+    Highcharts.setOptions({
+        lang: {
+            thousandsSep: '.'
+        }
+    });
     Chart = Highcharts.chart('container', {
         chart: {
             type: 'column',
@@ -124,7 +130,7 @@ function drawChart(data) {
         accessibility: {
             announceNewData: {
                 enabled: true
-            }
+            },
         },
         xAxis: {
             type: 'category',
@@ -135,7 +141,7 @@ function drawChart(data) {
         yAxis: {
             title: {
                 text: 'Số người'
-            }
+            },
         },
         legend: {
             enabled: true
@@ -145,7 +151,10 @@ function drawChart(data) {
                 borderWidth: 0,
                 dataLabels: {
                     enabled: true,
-                    format: '{point.percent:.2f}%<br/>{point.y}'
+                    //format: '{point.percent:.2f} %<br/>{point.y}',
+                    formatter: function () {
+                        return format(this.y);
+                    }
                 }
             }
         },
