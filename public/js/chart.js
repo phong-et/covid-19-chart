@@ -1,7 +1,7 @@
 let log = console.log
 $().ready(function () {
     // load chart as default conditions
-    loadData(genFileName(new Date()), data => {
+    loadData(genFileName(new Date()) + '?v=' + new Date().getTime(), data => {
         drawChart(mutateDataByCondition(data, 'newCases', { limitedNumber: 20, isIncludedTheWorld: false }))
     })
     let options = {
@@ -11,7 +11,7 @@ $().ready(function () {
         autoclose: true,
         todayHighlight: true,
     }
-    $('#datepickerReview').datepicker(options).datepicker("setDate", 'now')
+    $('#datepickerCovid').datepicker(options).datepicker("setDate", 'now')
 
     $('#btnResize').click(function () {
         let width = $('#txtWidth').val()
@@ -22,12 +22,12 @@ $().ready(function () {
     btnViewChart.click(function () {
         let caseType = $('#ddlCaseType option:selected'),
             condition = caseType.val(),
-            fileName = genFileName($('#datepickerReview').datepicker('getDate')),
+            fileName = genFileName($('#datepickerCovid').datepicker('getDate')),
             limitedNumber = $('#ddlLimitedCountry option:selected').val(),
             isIncludedTheWorld = $('#cbIsIncludedTheWorld').is(':checked')
 
         chartTitle = caseType.text()
-        loadData(fileName, data => {
+        loadData(fileName + '?v=' + new Date().getTime(), data => {
             if (limitedNumber === 'all')
                 data = mutateDataByCondition(data, condition, { isIncludedTheWorld: isIncludedTheWorld })
             else data = mutateDataByCondition(data, condition, { limitedNumber: +limitedNumber, isIncludedTheWorld: isIncludedTheWorld })
@@ -38,6 +38,7 @@ $().ready(function () {
 
     $('#cbIsIncludedTheWorld').change(() => btnViewChart.trigger('click'))
     $('#ddlLimitedCountry').change(() => btnViewChart.trigger('click'))
+    $('#datepickerCovid').change(() => btnViewChart.trigger('click'))
     $('#ddlCaseType').change(() => btnViewChart.trigger('click'))
 })
 //date is a Date() object
