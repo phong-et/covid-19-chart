@@ -30,11 +30,10 @@ function genFileName(extentionName, hasHourSuffix) {
         y = d.getFullYear(),
         m = (d.getMonth() + 1),
         day = d.getDate()
-    return `${y}${m >= 10 ? m : '0' + m}${day >= 10 ? day : '0' + day}${hasHourSuffix ? '_' + d.getHours() + 'h' : ''}${extentionName}`
+    return `${y}${m >= 10 ? m : '0' + m}${day >= 10 ? day : '0' + day}${hasHourSuffix ? '_' + d.getHours() + 'h' + d.getMinutes() + 'm' : ''}${extentionName}`
 }
 
-async function fetchHtmlTableNow() {
-    const url = 'https://www.worldometers.info/coronavirus/'
+async function fetchHtmlTable(url) {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle2' });
@@ -48,7 +47,7 @@ async function fetchHtmlTableNow() {
     return bodyHtml
 }
 
-function genHtmlTableNowToJson(htmlPage) {
+async function genHtmlTableToJson(htmlPage) {
     let jsonWorld = {}
     let jsonCountry = {}
     //htmlPage = await readFile('body.html')
@@ -57,77 +56,79 @@ function genHtmlTableNowToJson(htmlPage) {
     let rows = $('#main_table_countries_today tr[role=row]')
     for (let i = 1; i < rows.length; i++) {
         let row = cheerio.load(rows.eq(i).html().trim(), { xmlMode: true })
-        jsonCountry = genHtmlRowTableNowToArray(row.html().trim())
+        jsonCountry = genHtmlRowTableToArray(row.html().trim())
         jsonWorld = Object.assign(jsonWorld, jsonCountry)
     }
     let content = JSON.stringify(jsonWorld)
-    log(content)
-    writeFile(dataPath + genFileName('.json'), content)
-    writeFile(dataPath + genFileName('.json', true), content)
+    //log(content)
+    await writeFile(dataPath + genFileName('.json'), content)
+    await writeFile(dataPath + genFileName('.json', true), content)
 }
 
-const delComma = (obj) => obj.text().trim().replace(/,+/g, '')
-function genHtmlRowTableNowToJson(strHtmlRow) {
+
+// function genHtmlRowTableNowToJson(strHtmlRow) {
+//     let $ = cheerio.load(strHtmlRow, { xmlMode: true })
+//     //log($('td').length)
+//     //log($('td').eq(0).html())
+//     let jsonRow = {},
+//         // name country
+//         rowKeyName = $('td').eq(0).text().trim().replace(/\s+|\n|-|\./g, '_').replace('__', '_').toLowerCase(),
+//         jsonKeyValue = {
+//             totalCases: +delComma($('td').eq(1)),
+//             newCases: +delComma($('td').eq(2)),
+//             totalDeaths: +delComma($('td').eq(3)),
+//             newDeaths: +delComma($('td').eq(4)),
+//             totalRecovered: +delComma($('td').eq(5)),
+//             activeCases: +delComma($('td').eq(6)),
+//             seriousCritical: +delComma($('td').eq(7)),
+//             totalCasesPer1MPop: +delComma($('td').eq(8)),
+//             deathsPer1MPop: +delComma($('td').eq(9)),
+//             totalTests: +delComma($('td').eq(10)),
+//             testsPer1MPop: +delComma($('td').eq(11)),
+//         }
+//     jsonRow[rowKeyName] = jsonKeyValue
+//     //log(jsonRow)
+//     return jsonRow
+// }
+const delComma = (selectorRow, i) => selectorRow.eq(i).text().trim().replace(/,+/g, '')
+function genHtmlRowTableToArray(strHtmlRow) {
     let $ = cheerio.load(strHtmlRow, { xmlMode: true })
-    //log($('td').length)
-    //log($('td').eq(0).html())
     let jsonRow = {},
         // name country
         rowKeyName = $('td').eq(0).text().trim().replace(/\s+|\n|-|\./g, '_').replace('__', '_').toLowerCase(),
-        jsonKeyValue = {
-            totalCases: +delComma($('td').eq(1)),
-            newCases: +delComma($('td').eq(2)),
-            totalDeaths: +delComma($('td').eq(3)),
-            newDeaths: +delComma($('td').eq(4)),
-            totalRecovered: +delComma($('td').eq(5)),
-            activeCases: +delComma($('td').eq(6)),
-            seriousCritical: +delComma($('td').eq(7)),
-            totalCasesPer1MPop: +delComma($('td').eq(8)),
-            deathsPer1MPop: +delComma($('td').eq(9)),
-            totalTests: +delComma($('td').eq(10)),
-            testsPer1MPop: +delComma($('td').eq(11)),
-        }
-    jsonRow[rowKeyName] = jsonKeyValue
-    //log(jsonRow)
-    return jsonRow
-}
-function genHtmlRowTableNowToArray(strHtmlRow) {
-    let $ = cheerio.load(strHtmlRow, { xmlMode: true })
-    let jsonRow = {},
-        // name country
-        rowKeyName = $('td').eq(0).text().trim().replace(/\s+|\n|-|\./g, '_').replace('__', '_').toLowerCase(),
-        jsonKeyValue = [
+        rowKeyValue = [
             //totalCases: 
-            +delComma($('td').eq(1)),
+            +delComma($('td'), 1),
             //newCases: 
-            +delComma($('td').eq(2)),
+            +delComma($('td'), 2),
             //totalDeaths: 
-            +delComma($('td').eq(3)),
+            +delComma($('td'), 3),
             //newDeaths: 
-            +delComma($('td').eq(4)),
+            +delComma($('td'), 4),
             //totalRecovered: 
-            +delComma($('td').eq(5)),
+            +delComma($('td'), 5),
             //activeCases: 
-            +delComma($('td').eq(6)),
+            +delComma($('td'), 6),
             //seriousCritical: 
-            +delComma($('td').eq(7)),
+            +delComma($('td'), 7),
             //totalCasesPer1MPop: 
-            +delComma($('td').eq(8)),
+            +delComma($('td'), 8),
             //deathsPer1MPop: 
-            +delComma($('td').eq(9)),
+            +delComma($('td'), 9),
             //totalTests: 
-            +delComma($('td').eq(10)),
+            +delComma($('td'), 10),
             //testsPer1MPop: 
-            +delComma($('td').eq(11)),
+            +delComma($('td'), 11),
         ]
-    jsonRow[rowKeyName] = jsonKeyValue
+    jsonRow[rowKeyName] = rowKeyValue
     return jsonRow
 }
-
-
-
-//////////////////////////////////////////////// Main Function ////////////////////////////////////////////////
-(async function () {
-    let html = await fetchHtmlTableNow()
-    genHtmlTableNowToJson(html)
-})()
+const WAIT_NEXT_FETCHING = 60000 // 60s
+async function run() {
+    let html = await fetchHtmlTable('https://www.worldometers.info/coronavirus/')
+    await genHtmlTableToJson(html)
+    log('%s: waiting after %ss', new Date().toLocaleString(), WAIT_NEXT_FETCHING / 1000)
+    setTimeout(async () => await run(), WAIT_NEXT_FETCHING)
+}
+/////// Main ////////
+(async () => await run())()
